@@ -32,7 +32,7 @@ import { useKeybindingConfig } from './command/config-keybinding'
 /** 配置Dnd组件面板 */
 import * as dndPanelConfig from './command/config-dnd-panel'
 /** 配置JsonConfigForm */
-import { formSchemaService, formValueUpdateService, controlMapService } from './command/config-form'
+import { NsJsonForm, formValueUpdateService, controlMapService } from './command/config-form'
 
 import '@antv/xflow/dist/index.css'
 import './index.less'
@@ -116,7 +116,8 @@ export const MyDag: React.FC<IProps> = props => {
       </XFlowCanvas>
       <JsonSchemaForm
         controlMapService={controlMapService}
-        formSchemaService={formSchemaService}
+        getCustomRenderComponent={NsJsonForm.getCustomRenderComponent}
+        formSchemaService={NsJsonForm.formSchemaService}
         formValueUpdateService={formValueUpdateService}
         bodyPosition={{ top: 0, bottom: 0, right: 0 }}
         position={{ width: 290, top: 0, bottom: 0, right: 0 }}
