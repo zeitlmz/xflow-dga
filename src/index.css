@@ -1,3 +1,7 @@
+.qnn-react-cron {
+    box-shadow: none !important;
+}
+
 .Search-module--search--1PVbh {
     margin-left: 36px;
     line-height: 1.5;
@@ -20949,7 +20953,7 @@ textarea.ant-mentions {
 }
 
 .ant-modal-confirm-body>.anticon+.ant-modal-confirm-title+.ant-modal-confirm-content {
-    margin-left: 38px
+    margin-left: 0 !important;
 }
 
 .ant-modal-confirm .ant-modal-confirm-btns {

@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react'
 import type { HookHub, ICmdHooks as IHooks, NsGraph, IModelService } from '@antv/xflow'
 import { Deferred, ManaSyringe } from '@antv/xflow'
-import { FormInstance, InputNumber } from 'antd'
+import { FormInstance, InputNumber, Switch } from 'antd'
 import { Modal, Form, Button, Input, Select, Row, Col, Popover } from 'antd'
 const { Option } = Select;
 import type { IArgsBase, ICommandHandler, IGraphCommandService } from '@antv/xflow'
@@ -12,17 +12,20 @@ import 'antd/es/modal/style/index.css'
 import { FormOutlined } from '@ant-design/icons'
 import type { IFormProps } from '../entity/TaskFrom'
 import './model-custom.less'
+import { DataForm } from '../entity/DataForm'
+import { resolve } from 'path'
+import { rejects } from 'assert'
 type ICommand = ICommandHandler<
-    NsRenameNodeCmd.IArgs,
-    NsRenameNodeCmd.IResult,
-    NsRenameNodeCmd.ICmdHooks
+    NsUpdateNodeCmd.IArgs,
+    NsUpdateNodeCmd.IResult,
+    NsUpdateNodeCmd.ICmdHooks
 >
 
-export namespace NsRenameNodeCmd {
+export namespace NsUpdateNodeCmd {
     /** Command: 用于注册named factory */
-    export const command = CustomCommands.SHOW_RENAME_MODAL
+    export const command = CustomCommands.SHOW_UPDATE_MODAL
     /** hook name */
-    export const hookKey = 'renameNode'
+    export const hookKey = 'updateNode'
     /** hook 参数类型 */
     export interface IArgs extends IArgsBase {
         nodeConfig: NsGraph.INodeConfig
@@ -48,7 +51,7 @@ export namespace NsRenameNodeCmd {
 
 @ManaSyringe.injectable()
 /** 部署画布数据 */
-export class RenameNodeCommand implements ICommand {
+export class UpdateNodeCommand implements ICommand {
     /** api */
     // @ts-ignore
     @ManaSyringe.inject(ICommandContextProvider) contextProvider: ICommand['contextProvider']
@@ -122,7 +125,7 @@ export interface IGetAppCtx {
         graphMeta: NsGraph.IGraphMeta
         commandService: IGraphCommandService
         modelService: IModelService
-        updateNodeDataService: NsRenameNodeCmd.updateNodeDataService
+        updateNodeDataService: NsUpdateNodeCmd.updateNodeDataService
     }
 }
 
@@ -136,7 +139,7 @@ function showModal(node: NsGraph.INodeConfig, getAppContext: IGetAppCtx) {
     /** modal确认保存逻辑 */
     class ModalCache {
         static modal: IModalInstance
-        static form: FormInstance<IFormProps>
+        static form: FormInstance<DataForm>
     }
     /** modal确认保存逻辑 */
     const onOk = async () => {
@@ -172,40 +175,45 @@ function showModal(node: NsGraph.INodeConfig, getAppContext: IGetAppCtx) {
 
     /** modal内容 */
     const ModalContent = () => {
-        const [form] = Form.useForm<IFormProps>()
+        const [form] = Form.useForm<DataForm>()
         /** 缓存form实例 */
         ModalCache.form = form
-        const formData: IFormProps = {
+        const formData: DataForm = {
             nodeName: '',
-            alarmEmail: '',
-            author: '',
-            childJobId: '',
-            cronGenDisplay: '* * * * * ? *',
-            executorBlockStrategy: 'SERIAL_EXECUTION',
-            executorFailRetryCount: 0,
-            executorTimeout: 0,
-            executorParam: '',
-            executorRouteStrategy: 'FIRST',
-            jobDesc: '',
-            jobGroup: '',
-            glueType: 'BEAN',
-            executorHandler: 'httpJobHandler',
-            misfireStrategy: 'DO_NOTHING',
-            scheduleType: 'CRON'
+            remark: '',
+            failRetryCount: 3,
+            failRetryTime: 10,
+            timeOutReport: true,
+            timeOutStrategy: [],
+            outTime: 30,
+            email: '',
+            datasourceType: 'mysql',
+            datasource: '',
+            sqlType: 1,
+            sendEmail: true,
+            sqlContent: '',
+            preSqlContent: '',
+            postSqlContent: '',
+            execStatus: 0
         }
-        const [scheduleType, setScheduleType] = useState(formData.scheduleType)
-        let cronFns: any = {}
-        const [showPopover, setShowPopover] = useState(false)
-        let getCronValue = (val: string) => {
+        type SelectData = Array<{ label: string, value: string }>
+        const [timeOutReport, setTimeOutReport] = useState<boolean>(formData.timeOutReport)
+        const onTimeOutReportChange = (val: boolean) => {
+            setTimeOutReport(val)
+        }
+        const [datasourceList, setDatasourceList] = useState<SelectData>([])
+        let getDataSourceList = (val: string) => {
             console.log(val);
-            form.setFieldsValue({ cronGenDisplay: val })
-            setShowPopover(false)
+            return new Promise((resolve) => {
+                resolve([{ label: 'mysql数据源1', value: 'mysql01' }] as Array<{ label: string, value: string }>)
+            })
         }
 
-        const onScheduleTypeChange = (val: string) => {
-            setScheduleType(val)
-            setShowPopover(false)
-            form.setFieldsValue({ cronGenDisplay: '' })
+        const onDatasourceTypeChange = (val: string) => {
+            getDataSourceList(val).then((res) => {
+                setDatasourceList(res as SelectData)
+            })
+            form.setFieldsValue({ datasource: '' })
         }
         return (
             < >
@@ -227,59 +235,30 @@ function showModal(node: NsGraph.INodeConfig, getAppContext: IGetAppCtx) {
                         </Col>
                     </Row>
                     <Row gutter={24}>
-                        <Col span={12}>
+                        <Col span={24}>
                             <Form.Item
-                                name="jobGroup"
-                                label="执行器"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: '请选择执行器',
-                                    },
-                                ]}
+                                name="remark"
+                                label="描述"
                             >
-                                <Select placeholder="请选择">
-                                    <Option value="1">CDM执行器</Option>
-                                </Select>
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item
-                                name="jobDesc"
-                                label="任务描述"
-                                rules={[
-                                    { required: true, message: '请输入任务描述' }
-                                ]}
-                            >
-                                <Input placeholder='请输入任务描述' />
+                                <Input.TextArea />
                             </Form.Item>
                         </Col>
                     </Row>
                     <Row gutter={24}>
                         <Col span={12}>
                             <Form.Item
-                                name="author"
-                                label="负责人"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: '请填写负责人',
-                                    },
-                                ]}
+                                name="failRetryCount"
+                                label="失败重试次数"
                             >
-                                <Input placeholder='请填写负责人' />
+                                <InputNumber placeholder='请输入' />
                             </Form.Item>
                         </Col>
                         <Col span={12}>
                             <Form.Item
-                                name="alarmEmail"
-                                label="报警邮件"
-                                rules={[
-                                    { type: 'email', message: '邮箱格式不正确' },
-                                    { required: true, message: '请输入报警接收邮箱' }
-                                ]}
+                                name="failRetryTime"
+                                label="失败重试间隔"
                             >
-                                <Input placeholder='请输入报警接收邮箱' />
+                                <Input placeholder='请输入' />
                             </Form.Item>
                         </Col>
                     </Row>
@@ -287,7 +266,7 @@ function showModal(node: NsGraph.INodeConfig, getAppContext: IGetAppCtx) {
                         <Col span={12}>
                             <Form.Item
                                 name="glueType"
-                                label="运行模式"
+                                label="超时告警"
                                 rules={[
                                     {
                                         required: true,
@@ -295,45 +274,23 @@ function showModal(node: NsGraph.INodeConfig, getAppContext: IGetAppCtx) {
                                     },
                                 ]}
                             >
-                                <Select placeholder="请选择">
-                                    <Option value="BEAN">BEAN</Option>
-                                    <Option value="GLUE_GROOVY">GLUE(Java)</Option>
-                                    <Option value="GLUE_SHELL">GLUE(Shell)</Option>
-                                    <Option value="GLUE_PYTHON">GLUE(Python)</Option>
-                                    <Option value="GLUE_PHP">GLUE(PHP)</Option>
-                                    <Option value="GLUE_NODEJS">GLUE(Nodejs)</Option>
-                                    <Option value="GLUE_POWERSHELL">GLUE(PowerShell)</Option>
-                                </Select>
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item
-                                name="executorHandler"
-                                label="JobHandler"
-                                rules={[
-                                    { required: true, message: '请填写JobHandler' }
-                                ]}
-                            >
-                                <Input placeholder='请填写JobHandler' />
                             </Form.Item>
                         </Col>
                     </Row>
                     <Row gutter={24}>
                         <Col span={12}>
                             <Form.Item
-                                name="scheduleType"
-                                label="调度类型"
+                                name="datasourceType"
+                                label="请选择数据源类型"
                                 rules={[
                                     {
                                         required: true,
-                                        message: '请选择调度类型',
+                                        message: '请选择数据源类型',
                                     },
                                 ]}
                             >
-                                <Select onChange={onScheduleTypeChange} placeholder="请选择">
-                                    <Option value="NONE">无</Option>
-                                    <Option value="CRON">CRON</Option>
-                                    <Option value="FIX_RATE">固定速度</Option>
+                                <Select onChange={onDatasourceTypeChange} placeholder="请选择">
+                                    {datasourceList.map(item => <Option value={item.value}>{item.label}</Option>)}
                                 </Select>
                             </Form.Item>
                         </Col>

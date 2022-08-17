@@ -4,6 +4,7 @@ import { uuidv4, NsGraph, NsGraphStatusCommand } from '@antv/xflow'
 import type { NsRenameNodeCmd } from './cmd-extensions/cmd-rename-node-modal'
 import type { NsNodeCmd, NsEdgeCmd, NsGraphCmd } from '@antv/xflow'
 import type { NsDeployDagCmd } from './cmd-extensions/cmd-deploy'
+import { NodeType } from './enums/NodeType'
 /** mock 后端接口调用 */
 export namespace MockApi {
     export const NODE_COMMON_PROPS = {
@@ -24,7 +25,8 @@ export namespace MockApi {
             {
                 ...NODE_COMMON_PROPS,
                 id: 'node1',
-                label: '算法节点-1',
+                label: '定时任务',
+                nodeType: NodeType.schedule,
                 ports: [
                     {
                         id: 'node1-input-1',
@@ -43,7 +45,8 @@ export namespace MockApi {
             {
                 ...NODE_COMMON_PROPS,
                 id: 'node2',
-                label: '算法节点-2',
+                label: '数据处理',
+                nodeType: NodeType.dataProcess,
                 ports: [
                     {
                         id: 'node2-input-1',
@@ -59,47 +62,7 @@ export namespace MockApi {
                         tooltip: '输出桩',
                     },
                 ] as NsGraph.INodeAnchor[],
-            },
-            {
-                ...NODE_COMMON_PROPS,
-                id: 'node3',
-                label: '算法节点-3',
-                ports: [
-                    {
-                        id: 'node3-input-1',
-                        type: NsGraph.AnchorType.INPUT,
-                        group: NsGraph.AnchorGroup.TOP,
-                        tooltip: '输入桩',
-                        connected: true,
-                    },
-                    {
-                        id: 'node3-output-1',
-                        type: NsGraph.AnchorType.OUTPUT,
-                        group: NsGraph.AnchorGroup.BOTTOM,
-                        tooltip: '输出桩',
-                    },
-                ] as NsGraph.INodeAnchor[],
-            },
-            {
-                ...NODE_COMMON_PROPS,
-                id: 'node4',
-                label: '算法节点-4',
-                ports: [
-                    {
-                        id: 'node4-input-1',
-                        type: NsGraph.AnchorType.INPUT,
-                        group: NsGraph.AnchorGroup.TOP,
-                        tooltip: '输入桩',
-                        connected: true,
-                    },
-                    {
-                        id: 'node4-output-1',
-                        type: NsGraph.AnchorType.OUTPUT,
-                        group: NsGraph.AnchorGroup.BOTTOM,
-                        tooltip: '输出桩',
-                    },
-                ] as NsGraph.INodeAnchor[],
-            },
+            }
         ]
         const edges: NsGraph.IEdgeConfig[] = [
             {
@@ -108,20 +71,6 @@ export namespace MockApi {
                 target: 'node2',
                 sourcePortId: 'node1-output-1',
                 targetPortId: 'node2-input-1',
-            },
-            {
-                id: uuidv4(),
-                source: 'node1',
-                target: 'node3',
-                sourcePortId: 'node1-output-1',
-                targetPortId: 'node3-input-1',
-            },
-            {
-                id: uuidv4(),
-                source: 'node1',
-                target: 'node4',
-                sourcePortId: 'node1-output-1',
-                targetPortId: 'node4-input-1',
             },
         ]
         return { nodes, edges }
@@ -196,13 +145,13 @@ export namespace MockApi {
     }
 
     /** 更新节点 name，可能依赖接口判断是否重名，返回空字符串时，不更新 */
-    export const renameNode: NsRenameNodeCmd.IUpdateNodeNameService = async (
-        name,
+    export const renameNode: NsRenameNodeCmd.updateNodeDataService = async (
+        nodeData,
         node,
         graphMeta,
     ) => {
-        console.log('rename node', node, name, graphMeta)
-        return { err: null, nodeName: name }
+        console.log('rename node', node, nodeData.name, graphMeta)
+        return { err: null, nodeName: nodeData.name }
     }
 
     /** 删除节点的api */

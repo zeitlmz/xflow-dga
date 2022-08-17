@@ -2,7 +2,6 @@ import React from 'react';
 import { AutoChart } from '@antv/auto-chart';
 import { useState } from 'react';
 import MyMonacoEditor from '../MyMonacoEditor';
-
 export default function MyCharts() {
     const [data, setState] = useState([])
     const onChange = (val: string) => {
@@ -18,7 +17,7 @@ export default function MyCharts() {
     return (
         <div>
             <AutoChart showRanking={true} width={'100vw'} height={'50vh'} data={data} />
-            <MyMonacoEditor onChange={onChange} lang={'json'} height={'50vh'} width={'100vw'} />
+            <MyMonacoEditor onChange={onChange} lang={'json'} height={'50vh'} width={'100%'} />
         </div>
     )
 }

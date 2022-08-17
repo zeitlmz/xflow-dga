@@ -32,7 +32,7 @@ import { useKeybindingConfig } from './command/config-keybinding'
 /** 配置Dnd组件面板 */
 import * as dndPanelConfig from './command/config-dnd-panel'
 /** 配置JsonConfigForm */
-import { NsJsonForm, formValueUpdateService, controlMapService } from './command/config-form'
+// import { NsJsonForm, formValueUpdateService, controlMapService } from './command/config-form'
 
 import '@antv/xflow/dist/index.css'
 import './index.less'
@@ -103,31 +103,30 @@ export const MyDag: React.FC<IProps> = props => {
         className="xflow-workspace-toolbar-top"
         layout="horizontal"
         config={toolbarConfig}
-        position={{ top: 0, left: 230, right: 290, bottom: 0 }}
+        position={{ top: 0, left: 230, right: 0, bottom: 0 }}
       />
       <
         // @ts-ignore
         XFlowCanvas
-        position={{ top: 40, left: 230, right: 290, bottom: 0 }}>
+        position={{ top: 40, left: 230, right: 0, bottom: 0 }}>
         <CanvasScaleToolbar position={{ top: 12, right: 12 }} />
         <CanvasContextMenu config={menuConfig} />
         <CanvasSnapline color="#faad14" />
         <CanvasNodePortTooltip />
       </XFlowCanvas>
-      <JsonSchemaForm
-        controlMapService={controlMapService}
-        getCustomRenderComponent={NsJsonForm.getCustomRenderComponent}
-        formSchemaService={NsJsonForm.formSchemaService}
-        formValueUpdateService={formValueUpdateService}
-        bodyPosition={{ top: 0, bottom: 0, right: 0 }}
-        position={{ width: 290, top: 0, bottom: 0, right: 0 }}
-        footerPosition={{ height: 0 }}
-      />
-      <KeyBindings config={keybindingConfig} />
     </XFlow>
   )
 }
-
+// <JsonSchemaForm
+// controlMapService={controlMapService}
+//   getCustomRenderComponent={NsJsonForm.getCustomRenderComponent}
+//   formSchemaService={NsJsonForm.formSchemaService}
+//   formValueUpdateService={formValueUpdateService}
+//   bodyPosition={{ top: 0, bottom: 0, right: 0 }}
+//   position={{ width: 290, top: 0, bottom: 0, right: 0 }}
+//   footerPosition={{ height: 0 }}
+// />
+// <KeyBindings config={keybindingConfig} />
 export default MyDag
 
 MyDag.defaultProps = {

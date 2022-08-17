@@ -9,10 +9,16 @@ export namespace CustomCommands {
         label: '异步请求',
         category,
     }
-    /** 重命名节点弹窗 */
+    /** 修改定时任务节点弹窗 */
     export const SHOW_RENAME_MODAL: IGraphCommand = {
         id: 'xflow:rename-node-modal',
-        label: '打开重命名弹窗',
+        label: '打开修改定时任务节点弹窗',
+        category,
+    }
+    /** 修改数据处理节点弹窗 */
+    export const SHOW_UPDATE_MODAL: IGraphCommand = {
+        id: 'xflow:update-node-modal',
+        label: '打开修改数据处理节点弹窗',
         category,
     }
     /** 部署服务 */

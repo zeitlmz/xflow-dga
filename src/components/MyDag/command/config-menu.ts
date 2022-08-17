@@ -6,6 +6,7 @@ import { IconStore, XFlowNodeCommands, XFlowEdgeCommands } from '@antv/xflow'
 import { DeleteOutlined, EditOutlined, StopOutlined } from '@ant-design/icons'
 import { CustomCommands } from './cmd-extensions/constants'
 import { MockApi } from './service'
+import { NodeType } from './enums/NodeType'
 
 /** menuitem 配置 */
 export namespace NsMenuItemConfig {
@@ -46,15 +47,28 @@ export namespace NsMenuItemConfig {
 
     export const RENAME_NODE: IMenuOptions = {
         id: CustomCommands.SHOW_RENAME_MODAL.id,
-        label: '重命名',
+        label: '修改节点',
         isVisible: true,
         iconName: 'EditOutlined',
         onClick: async ({ target, commandService }) => {
             const nodeConfig = target.data as NsGraph.INodeConfig
-            commandService.executeCommand<NsRenameNodeCmd.IArgs>(CustomCommands.SHOW_RENAME_MODAL.id, {
-                nodeConfig,
-                updateNodeNameService: MockApi.renameNode,
-            })
+            switch (nodeConfig.nodeType) {
+                case NodeType.schedule:
+                    console.log(NodeType.schedule, nodeConfig);
+                    commandService.executeCommand<NsRenameNodeCmd.IArgs>(CustomCommands.SHOW_RENAME_MODAL.id, {
+                        nodeConfig,
+                        updateNodeNameService: MockApi.renameNode,
+                    })
+                    break
+                case NodeType.dataProcess:
+                    console.log(NodeType.dataProcess, nodeConfig);
+                    commandService.executeCommand<NsRenameNodeCmd.IArgs>(CustomCommands.SHOW_UPDATE_MODAL.id, {
+                        nodeConfig,
+                        updateNodeNameService: MockApi.renameNode,
+                    })
+                    break
+            }
+
         },
     }
 

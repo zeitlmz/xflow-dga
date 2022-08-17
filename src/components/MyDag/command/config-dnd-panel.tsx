@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { uuidv4 } from '@antv/xflow'
-import { XFlowNodeCommands } from '@antv/xflow'
+import { XFlowNodeCommands, NsGraph } from '@antv/xflow'
 import { DND_RENDER_ID } from '../constant'
-import type { NsNodeCmd } from '@antv/xflow'
-import type { NsNodeCollapsePanel } from '@antv/xflow'
+import type { NsNodeCollapsePanel, NsNodeCmd } from '@antv/xflow'
 import { Card } from 'antd'
-import React from 'react'
 
 export const onNodeDrop: NsNodeCollapsePanel.IOnNodeDrop = async (node, commands, modelService) => {
     const args: NsNodeCmd.AddNode.IArgs = {
@@ -16,91 +14,55 @@ export const onNodeDrop: NsNodeCollapsePanel.IOnNodeDrop = async (node, commands
 
 const NodeDescription = (props: { name: string }) => {
     return (
-        <Card size="small" title="算法组件介绍" style={{ width: '200px' }} bordered={false}>
-            欢迎使用：{props.name}
-            这里可以根据服务端返回的数据显示不同的内容
+        <Card size="small" title="定时任务介绍" style={{ width: '200px' }} bordered={false}>
+            {props.name}
         </Card>
     )
 }
 
 export const nodeDataService: NsNodeCollapsePanel.INodeDataService = async (meta, modelService) => {
-    console.log(meta, modelService)
     return [
         {
-            id: '数据读写',
-            header: '数据读写',
+            id: 'schedule',
+            header: '定时任务',
             children: [
                 {
                     id: '2',
                     label: '定时任务',
+                    nodeType: 'schedule',
                     parentId: '1',
                     renderKey: DND_RENDER_ID,
                     popoverContent: <NodeDescription name="定时任务" />,
-                },
-                {
-                    id: '3',
-                    label: '算法组件2',
-                    parentId: '1',
-                    renderKey: DND_RENDER_ID,
-                    popoverContent: <NodeDescription name="算法组件2" />,
-                },
-                {
-                    id: '4',
-                    label: '算法组件3',
-                    parentId: '1',
-                    renderKey: DND_RENDER_ID,
-                    popoverContent: <NodeDescription name="算法组件3" />,
-                },
+                    ports: [
+                        {
+                            id: 'node1-input-1',
+                            type: NsGraph.AnchorType.INPUT,
+                            group: NsGraph.AnchorGroup.TOP,
+                            tooltip: '输入桩',
+                        },
+                        {
+                            id: 'node1-output-1',
+                            type: NsGraph.AnchorType.OUTPUT,
+                            group: NsGraph.AnchorGroup.BOTTOM,
+                            tooltip: '输出桩',
+                        },
+                    ] as NsGraph.INodeAnchor[],
+                }
             ],
         },
         {
-            id: '数据加工',
+            id: 'dataProcess',
             header: '数据加工',
             children: [
                 {
                     id: '6',
-                    label: '算法组件4',
+                    label: '数据处理',
+                    nodeType: 'dataProcess',
                     parentId: '5',
                     renderKey: DND_RENDER_ID,
-                },
-                {
-                    id: '7',
-                    label: '算法组件5',
-                    parentId: '5',
-                    renderKey: DND_RENDER_ID,
-                },
-                {
-                    id: '8',
-                    label: '算法组件6',
-                    parentId: '5',
-                    renderKey: DND_RENDER_ID,
-                },
+                }
             ],
-        },
-        {
-            id: '模型训练',
-            header: '模型训练',
-            children: [
-                {
-                    id: '6',
-                    label: '算法组件4',
-                    parentId: '5',
-                    renderKey: DND_RENDER_ID,
-                },
-                {
-                    id: '7',
-                    label: '算法组件5',
-                    parentId: '5',
-                    renderKey: DND_RENDER_ID,
-                },
-                {
-                    id: '8',
-                    label: '算法组件6',
-                    parentId: '5',
-                    renderKey: DND_RENDER_ID,
-                },
-            ],
-        },
+        }
     ]
 }
 
