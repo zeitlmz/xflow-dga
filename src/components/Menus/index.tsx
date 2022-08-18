@@ -1,18 +1,29 @@
 import { Menu, MenuProps } from 'antd'
-import { Link, useLocation } from "react-router-dom"
+import { useState } from 'react'
+import { useLocation } from "react-router-dom"
+import { menus } from '../../utils/generateMenus'
 import './index.less'
-import { routers } from '../../routers'
-type MenuItem = Required<MenuProps>['items'][number];
 export function Menus(props: { collapsed: boolean }) {
-    function getItem(label: React.ReactNode, key?: React.Key | null, icon?: React.ReactNode, children?: MenuItem[], type?: 'group'): MenuItem {
-        return { key, icon, children, label, type } as MenuItem;
+    const location = useLocation().pathname
+    const defaultOpenKeys: string[] = []
+    if (location && location !== '/' && location.indexOf('/') !== -1) {
+        const pathStr = location.split('/')
+        defaultOpenKeys.push('/' + pathStr[1])
     }
-    const items: MenuItem[] = [];
-    Object.keys(routers).map(key => items.push(getItem(<Link to={key}>{routers[key].title}</Link>, key, routers[key].icon)))
+    const [openKeys, setOpenKeys] = useState<string[]>(defaultOpenKeys);
+    const onOpenChange: MenuProps['onOpenChange'] = keys => {
+        console.log(keys);
+        const latestOpenKey = keys.find(key => openKeys.indexOf(key) === -1);
+        if (latestOpenKey) {
+            setOpenKeys([latestOpenKey]);
+        } else {
+            setOpenKeys([]);
+        }
+    };
     return (
         <div className={'my-menus ' + (props.collapsed ? 'collapsed' : 'decollapsed')}>
-            <Menu items={items} mode="inline" defaultSelectedKeys={[useLocation().pathname]}
-                defaultOpenKeys={[useLocation().pathname]} inlineCollapsed={props.collapsed}></Menu>
+            <Menu items={menus} openKeys={openKeys} onOpenChange={onOpenChange} mode="inline" defaultSelectedKeys={[location]}
+                defaultOpenKeys={defaultOpenKeys} inlineCollapsed={props.collapsed}></Menu>
         </div>
     )
 }

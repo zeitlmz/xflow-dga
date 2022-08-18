@@ -1,6 +1,6 @@
 export interface DataForm {
     // 节点名称
-    nodeName: string
+    myNodeName: string
     // 备注
     remark?: string
     // 失败重试次数
@@ -9,6 +9,8 @@ export interface DataForm {
     failRetryTime: number
     // 超时告警
     timeOutReport: boolean
+    // 延迟执行时间
+    delayTime: number,
     // 超时告警策略
     timeOutStrategy: Array<string>
     // 指定的超时时长(秒/s)
@@ -20,9 +22,13 @@ export interface DataForm {
     // 已维护好的数据源
     datasource: string
     // sql类型0:非查询1查询
-    sqlType: number
+    sqlType: string
     // 执行完成是否发送邮件
-    sendEmail: boolean
+    sendEmail: boolean,
+    // 分段执行符合
+    segmentSymbol: string,
+    // 日志行数
+    logRows: number,
     // sql语句
     sqlContent: string
     // 前置处理sql

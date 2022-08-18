@@ -1,20 +1,16 @@
-import React, { useRef, useState } from 'react'
+import React, { useState } from 'react'
 import type { HookHub, ICmdHooks as IHooks, NsGraph, IModelService } from '@antv/xflow'
 import { Deferred, ManaSyringe } from '@antv/xflow'
-import { FormInstance, InputNumber, Switch } from 'antd'
-import { Modal, Form, Button, Input, Select, Row, Col, Popover } from 'antd'
+import { Modal, Form, Button, Input, Select, Row, Col, Checkbox, FormInstance, InputNumber, Switch } from 'antd'
 const { Option } = Select;
 import type { IArgsBase, ICommandHandler, IGraphCommandService } from '@antv/xflow'
 import { ICommandContextProvider } from '@antv/xflow'
-import QnnReactCron from "qnn-react-cron";
+import MyMonacoEditor from '../../../MyMonacoEditor';
 import { CustomCommands } from './constants'
 import 'antd/es/modal/style/index.css'
-import { FormOutlined } from '@ant-design/icons'
-import type { IFormProps } from '../entity/TaskFrom'
+
 import './model-custom.less'
 import { DataForm } from '../entity/DataForm'
-import { resolve } from 'path'
-import { rejects } from 'assert'
 type ICommand = ICommandHandler<
     NsUpdateNodeCmd.IArgs,
     NsUpdateNodeCmd.IResult,
@@ -29,7 +25,7 @@ export namespace NsUpdateNodeCmd {
     /** hook 参数类型 */
     export interface IArgs extends IArgsBase {
         nodeConfig: NsGraph.INodeConfig
-        updateNodeNameService: updateNodeDataService
+        updateNodeDataService: updateNodeDataService
     }
     export interface updateNodeDataService {
         (nodeData: any, nodeConfig: NsGraph.INodeConfig, meta: NsGraph.IGraphMeta): Promise<{
@@ -179,29 +175,38 @@ function showModal(node: NsGraph.INodeConfig, getAppContext: IGetAppCtx) {
         /** 缓存form实例 */
         ModalCache.form = form
         const formData: DataForm = {
-            nodeName: '',
+            myNodeName: '',
             remark: '',
             failRetryCount: 3,
             failRetryTime: 10,
+            delayTime: 0,
             timeOutReport: true,
-            timeOutStrategy: [],
+            timeOutStrategy: ['timeOut'],
             outTime: 30,
             email: '',
             datasourceType: 'mysql',
-            datasource: '',
-            sqlType: 1,
+            datasource: 'mysql01',
+            sqlType: 'query',
             sendEmail: true,
+            segmentSymbol: '',
+            logRows: 1,
             sqlContent: '',
             preSqlContent: '',
             postSqlContent: '',
             execStatus: 0
         }
         type SelectData = Array<{ label: string, value: string }>
-        const [timeOutReport, setTimeOutReport] = useState<boolean>(formData.timeOutReport)
+        const timeOutStrategys = [
+            { label: '超时告警', value: 'timeOut' },
+            { label: '超时失败', value: 'outFail' }
+        ];
+        const [isTimeOutReport, setTimeOutReport] = useState<boolean>(formData.timeOutReport)
+        const [sqlType, setSqlType] = useState<string>(formData.sqlType)
         const onTimeOutReportChange = (val: boolean) => {
             setTimeOutReport(val)
         }
         const [datasourceList, setDatasourceList] = useState<SelectData>([])
+        const [datasourceTypeList, setDatasourceTypeList] = useState<SelectData>([{ label: 'mysql', value: 'mysql' }, { label: 'oracle', value: 'oracle' }])
         let getDataSourceList = (val: string) => {
             console.log(val);
             return new Promise((resolve) => {
@@ -215,13 +220,19 @@ function showModal(node: NsGraph.INodeConfig, getAppContext: IGetAppCtx) {
             })
             form.setFieldsValue({ datasource: '' })
         }
+        const onSqlTypeChange = (val: string) => {
+            setSqlType(val)
+        }
+        const editorChange = (val: string) => {
+            form.setFieldsValue({ sqlContent: val })
+        }
         return (
             < >
-                <Form form={form} labelAlign='right' labelCol={{ style: { width: 120 } }} initialValues={formData}>
+                <Form form={form} layout={'vertical'} labelAlign='right' labelCol={{ style: { width: 120 } }} initialValues={formData}>
                     <Row gutter={24}>
                         <Col span={24}>
                             <Form.Item
-                                name="nodeName"
+                                name="myNodeName"
                                 label="节点名称"
                                 rules={[
                                     {
@@ -230,7 +241,7 @@ function showModal(node: NsGraph.INodeConfig, getAppContext: IGetAppCtx) {
                                     },
                                 ]}
                             >
-                                <Input />
+                                <Input placeholder='请输入节点名称' />
                             </Form.Item>
                         </Col>
                     </Row>
@@ -240,48 +251,72 @@ function showModal(node: NsGraph.INodeConfig, getAppContext: IGetAppCtx) {
                                 name="remark"
                                 label="描述"
                             >
-                                <Input.TextArea />
+                                <Input.TextArea placeholder='请输入节点描述' />
                             </Form.Item>
                         </Col>
                     </Row>
                     <Row gutter={24}>
-                        <Col span={12}>
+                        <Col span={8}>
                             <Form.Item
                                 name="failRetryCount"
                                 label="失败重试次数"
                             >
-                                <InputNumber placeholder='请输入' />
+                                <InputNumber addonAfter={<>次</>} placeholder='请输入' />
                             </Form.Item>
                         </Col>
-                        <Col span={12}>
+                        <Col span={8}>
                             <Form.Item
                                 name="failRetryTime"
                                 label="失败重试间隔"
                             >
-                                <Input placeholder='请输入' />
+                                <InputNumber addonAfter={<>分</>} placeholder='请输入' />
+                            </Form.Item>
+                        </Col>
+                        <Col span={8}>
+                            <Form.Item
+                                name="delayTime"
+                                label="延迟执行时间"
+                            >
+                                <InputNumber addonAfter={<>分</>} placeholder='请输入' />
                             </Form.Item>
                         </Col>
                     </Row>
                     <Row gutter={24}>
-                        <Col span={12}>
+                        <Col span={8}>
                             <Form.Item
-                                name="glueType"
+                                name="timeOutReport"
+                                valuePropName='checked'
                                 label="超时告警"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: '请选择运行模式',
-                                    },
-                                ]}
                             >
+                                <Switch onChange={onTimeOutReportChange} checkedChildren="开启" unCheckedChildren="关闭" />
                             </Form.Item>
                         </Col>
+                        {isTimeOutReport &&
+                            <>
+                                <Col span={8}>
+                                    <Form.Item
+                                        name='timeOutStrategy'
+                                        label="超时告警策略"
+                                    >
+                                        <Checkbox.Group options={timeOutStrategys} />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={8}>
+                                    <Form.Item
+                                        name="outTime"
+                                        label="超时时长"
+                                    >
+                                        <InputNumber addonAfter={<>分</>} />
+                                    </Form.Item>
+                                </Col>
+                            </>
+                        }
                     </Row>
                     <Row gutter={24}>
                         <Col span={12}>
                             <Form.Item
                                 name="datasourceType"
-                                label="请选择数据源类型"
+                                label="数据源类型"
                                 rules={[
                                     {
                                         required: true,
@@ -289,178 +324,111 @@ function showModal(node: NsGraph.INodeConfig, getAppContext: IGetAppCtx) {
                                     },
                                 ]}
                             >
-                                <Select onChange={onDatasourceTypeChange} placeholder="请选择">
-                                    {datasourceList.map(item => <Option value={item.value}>{item.label}</Option>)}
+                                <Select onChange={onDatasourceTypeChange} options={datasourceTypeList} placeholder="请选择">
                                 </Select>
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            {scheduleType === "CRON" &&
-                                <Form.Item label="CRON表达式"
-                                >
-                                    <Form.Item name='cronGenDisplay' noStyle rules={[
-                                        { required: true, message: '请输入CRON表达式' }
-                                    ]}>
-                                        <Input placeholder='请输入CRON表达式' style={{ width: 'calc(100% - 32px)' }} />
-                                    </Form.Item>
-                                    <Popover visible={showPopover} placement="right" content={
-                                        <div style={{ width: '350px' }}>
-                                            <
-                                                // @ts-ignore
-                                                QnnReactCron value="* * * * * ? *" onOk={getCronValue}
-                                                getCronFns={(fns: any) => {
-                                                    cronFns = fns
-                                                }}
-                                                footer={
-                                                    <>
-                                                        <Button key={'btn1'} style={{ marginRight: '10px' }} onClick={() => { setShowPopover(false) }}>
-                                                            取消
-                                                        </Button>
-                                                        <Button type="primary" onClick={() => {
-                                                            getCronValue(cronFns.getValue())
-                                                        }}>
-                                                            确定
-                                                        </Button>
-                                                    </>
-                                                }
-                                            />
-                                        </div>
-                                    } trigger="click">
-                                        <Button icon={<FormOutlined />} onClick={() => {
-                                            setShowPopover(true)
-                                        }}></Button>
-                                    </Popover>
-                                </Form.Item>}
-                            {scheduleType === "FIX_RATE" &&
-                                <Form.Item
-                                    name="schedule_conf_FIX_RATE"
-                                    label="固定速度"
-                                    rules={[
-                                        { required: true, message: '请输入(单位秒)' }
-                                    ]}
-                                >
-                                    <InputNumber style={{ width: '100%' }} placeholder='请输入(单位秒)' />
-                                </Form.Item>
-                            }
+                            <Form.Item
+                                name="datasource"
+                                label="数据源实例"
+                            >
+                                <Select onChange={onDatasourceTypeChange} options={datasourceList} placeholder="请选择">
+                                </Select>
+                            </Form.Item>
                         </Col>
+                    </Row>
+                    <Row gutter={24}>
+                        <Col span={6}>
+                            <Form.Item
+                                name="sqlType"
+                                label="SQL类型"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: '请选择SQL类型',
+                                    },
+                                ]}
+                            >
+                                <Select onChange={onSqlTypeChange} placeholder="请选择">
+                                    <Option value='query'>查询</Option>
+                                    <Option value='other'>非查询</Option>
+                                </Select>
+                            </Form.Item>
+                        </Col>
+                        {sqlType === 'query' &&
+                            <>
+                                <Col span={6}>
+                                    <Form.Item
+                                        name="sendEmail"
+                                        valuePropName='checked'
+                                        label="发送邮件"
+                                    >
+                                        <Switch checkedChildren="开启" unCheckedChildren="关闭" />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={12}>
+                                    <Form.Item
+                                        label="日志显示"
+                                    >
+                                        <Row>
+                                            <Col span={11}>
+                                                <Form.Item
+                                                    name="logRows"
+                                                    rules={[
+                                                        {
+                                                            required: true,
+                                                            message: '请选择日志显示行数',
+                                                        },
+                                                    ]}
+                                                >
+                                                    <Select placeholder="请选择">
+                                                        <Option value={1}>1</Option>
+                                                        <Option value={10}>10</Option>
+                                                        <Option value={25}>25</Option>
+                                                        <Option value={50}>50</Option>
+                                                        <Option value={100}>100</Option>
+                                                    </Select>
+                                                </Form.Item>
+                                            </Col>
+                                            <Col span={12} offset={1}><div style={{ paddingTop: '5px' }}>行查询结果</div></Col>
+                                        </Row>
+                                    </Form.Item>
+                                </Col>
+                            </>
+                        }
+                        {sqlType === 'other' &&
+                            <Col span={18}>
+                                <Form.Item
+                                    name="segmentSymbol"
+                                    label="分段执行符号"
+                                >
+                                    <Input placeholder='请输入分段执行符号' />
+                                </Form.Item>
+                            </Col>
+                        }
                     </Row>
                     <Row gutter={24}>
                         <Col span={24}>
                             <Form.Item
-                                name="executorParam"
-                                label="执行参数"
+                                name="sqlContent"
+                                label="SQL语句"
                                 rules={[
                                     {
                                         required: true,
-                                        message: '请填写执行参数',
+                                        message: '请填写SQL语句',
                                     },
                                 ]}
                             >
-                                <Input.TextArea placeholder='请填写执行参数' />
-                            </Form.Item>
-                        </Col>
-                    </Row>
-                    <Row gutter={24}>
-                        <Col span={12}>
-                            <Form.Item
-                                name="executorRouteStrategy"
-                                label="路由策略"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: '请选择路由策略',
-                                    },
-                                ]}
-                            >
-                                <Select placeholder="请选择">
-                                    <Option value="FIRST">第一个</Option>
-                                    <Option value="LAST">最后一个</Option>
-                                    <Option value="ROUND">轮询</Option>
-                                    <Option value="RANDOM">随机</Option>
-                                    <Option value="CONSISTENT_HASH">一致性HASH</Option>
-                                    <Option value="LEAST_FREQUENTLY_USED">最不经常使用</Option>
-                                    <Option value="LEAST_RECENTLY_USED">最近最久未使用</Option>
-                                    <Option value="FAILOVER">故障转移</Option>
-                                    <Option value="BUSYOVER">忙碌转移</Option>
-                                    <Option value="SHARDING_BROADCAST">分片广播</Option>
-                                </Select>
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item
-                                name="childJobId"
-                                label="子任务ID"
-                            >
-                                <Input placeholder='请输入子任务ID' />
-                            </Form.Item>
-                        </Col>
-                    </Row>
-                    <Row gutter={24}>
-                        <Col span={12}>
-                            <Form.Item
-                                name="misfireStrategy"
-                                label="调度过期策略"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: '请选择调度过期策略',
-                                    },
-                                ]}
-                            >
-                                <Select placeholder="请选择">
-                                    <Option value="DO_NOTHING" selected="">忽略</Option>
-                                    <Option value="FIRE_ONCE_NOW">立即执行一次</Option>
-                                </Select>
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item
-                                name="executorBlockStrategy"
-                                label="阻塞处理策略"
-                                rules={[
-                                    { required: true, message: '请选择阻塞处理策略' }
-                                ]}
-                            >
-                                <Select placeholder="请选择">
-                                    <Option value="SERIAL_EXECUTION">单机串行</Option>
-                                    <Option value="DISCARD_LATER">丢弃后续调度</Option>
-                                    <Option value="COVER_EARLY">覆盖之前调度</Option>
-                                </Select>
-                            </Form.Item>
-                        </Col>
-                    </Row>
-                    <Row gutter={24}>
-                        <Col span={12}>
-                            <Form.Item
-                                name="executorTimeout"
-                                label="任务超时时间"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: '请输入任务超时时间',
-                                    },
-                                ]}
-                            >
-                                <InputNumber placeholder='请输入任务超时时间' />
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item
-                                name="executorFailRetryCount"
-                                label="失败重试次数"
-                                rules={[
-                                    { required: true, message: '请输入失败重试次数' }
-                                ]}
-                            >
-                                <InputNumber placeholder='请输入失败重试次数' />
+                                <MyMonacoEditor theme='vs-white' width='100%' height='300px' lang='sql' onChange={editorChange} />
                             </Form.Item>
                         </Col>
                     </Row>
                     <Row>
                         <Col span={6} offset={18}>
                             <div style={{ width: '100%', 'textAlign': 'right' }}>
-                                <Button onClick={() => { onHide(); setShowPopover(false) }} style={{ marginRight: '8px' }}>取消</Button>
-                                <Button onClick={() => { onOk(); setShowPopover(false) }} type='primary'>保存</Button>
+                                <Button onClick={() => { onHide(); }} style={{ marginRight: '8px' }}>取消</Button>
+                                <Button onClick={() => { onOk(); }} type='primary'>保存</Button>
                             </div>
                         </Col>
                     </Row>

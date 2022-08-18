@@ -1,5 +1,5 @@
 export interface IFormProps {
-    nodeName: string,
+    myNodeName: string,
     alarmEmail: string,
     author: string,
     childJobId: string,

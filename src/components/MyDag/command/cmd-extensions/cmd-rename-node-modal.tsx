@@ -176,7 +176,7 @@ function showModal(node: NsGraph.INodeConfig, getAppContext: IGetAppCtx) {
         /** 缓存form实例 */
         ModalCache.form = form
         const formData: IFormProps = {
-            nodeName: '',
+            myNodeName: '',
             alarmEmail: '',
             author: '',
             childJobId: '',
@@ -213,7 +213,7 @@ function showModal(node: NsGraph.INodeConfig, getAppContext: IGetAppCtx) {
                     <Row gutter={24}>
                         <Col span={24}>
                             <Form.Item
-                                name="nodeName"
+                                name="myNodeName"
                                 label="节点名称"
                                 rules={[
                                     {

@@ -1,24 +1,8 @@
 import { useState } from 'react';
 import Monaco from 'react-monaco-editor';
-export default (props: { onChange: Function, lang: string, width: string, height: string }) => {
-    const [data, setState] = useState(JSON.stringify([
-        {
-            "f1": "2019-01",
-            "f2": 100
-        },
-        {
-            "f1": "2019-02",
-            "f2": 300
-        },
-        {
-            "f1": "2019-03",
-            "f2": 340
-        },
-        {
-            "f1": "2019-04",
-            "f2": 330
-        }
-    ], null, 4))
+
+export default (props: { onChange: Function, lang: string, defaultValue?: string, theme?: string, width: string, height: string }) => {
+    const [data, setState] = useState<string>(props.defaultValue || '')
 
     const options = {
         selectOnLineNumbers: true,
@@ -31,5 +15,5 @@ export default (props: { onChange: Function, lang: string, width: string, height
     setTimeout(() => {
         props.onChange(data)
     }, 1)
-    return (<Monaco theme="vs-dark" height={props.height} width={props.width} language={props.lang} options={options} value={data} onChange={onChange} />)
+    return (<div style={{ border: '1px solid rgb(240, 240, 240)' }}><Monaco theme={props.theme ? props.theme : 'vs-dark'} height={props.height} width={props.width} language={props.lang} options={options} value={data} onChange={onChange} /></div>)
 }

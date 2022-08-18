@@ -9,7 +9,6 @@ export default function MyCharts() {
         try {
             arr = JSON.parse(val)
         } catch (err) {
-            console.error(err);
             return
         }
         setState(arr)
@@ -17,7 +16,7 @@ export default function MyCharts() {
     return (
         <div>
             <AutoChart showRanking={true} width={'100vw'} height={'50vh'} data={data} />
-            <MyMonacoEditor onChange={onChange} lang={'json'} height={'50vh'} width={'100%'} />
+            <MyMonacoEditor theme='vs-dark' onChange={onChange} lang={'json'} height={'50vh'} width={'100%'} />
         </div>
     )
 }
