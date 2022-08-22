@@ -515,6 +515,7 @@ function showModal(node: NsGraph.INodeConfig, getAppContext: IGetAppCtx) {
     const container = createContainer()
     /** 创建modal */
     const modal = Modal.confirm({
+        className: 'xflowForm',
         title: '修改节点',
         width: '700px',
         content: <ModalContent />,

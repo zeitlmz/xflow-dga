@@ -1,13 +1,16 @@
-import MyDag from "../components/MyDag"
 import MyCharts from "../components/MyCharts"
-import { PieChartOutlined, PartitionOutlined } from '@ant-design/icons'
+import DataSourceMan from "../pages/DataSourceMan"
+import DagMan from "../pages/DagMan"
+import { PieChartOutlined, PartitionOutlined, HomeOutlined } from '@ant-design/icons'
 import { Route } from "../entity/Route"
-
+import { Home } from "../pages/Home"
 export const routers: Array<Route> = [
+    { name: 'home', title: '首页', path: '/', element: <Home />, icon: <HomeOutlined /> },
     {
-        name: 'dagMan', title: '流程管理', path: '/dagMan', icon: <PartitionOutlined />,
+        name: 'flowMan', title: '工作流', path: '/flowMan', icon: <PartitionOutlined />,
         children: [
-            { name: 'dagDefine', title: '流程定义', path: '/dagDefine', element: <MyDag meta={{ flowId: 'myXflow' }} /> },
+            { name: 'datasourceMan', title: '数据源管理', path: '/datasourceMan', element: <DataSourceMan /> },
+            { name: 'dagMan', title: '流程管理', path: '/dagMan', element: <DagMan /> }
         ]
     },
     {

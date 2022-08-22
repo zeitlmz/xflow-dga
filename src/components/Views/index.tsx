@@ -13,6 +13,7 @@ export function Views(props: { collapsed: boolean }) {
         }
         return []
     }
+    console.log(props.collapsed);
     const MyRoutes = GetRoutes(routers)
     return (
         <div className='my-views' style={{ width: 'calc(100% - ' + (props.collapsed ? 79 : 250) + 'px)' }}>

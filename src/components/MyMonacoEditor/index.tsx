@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import Monaco from 'react-monaco-editor';
 
-export default (props: { onChange: Function, lang: string, defaultValue?: string, theme?: string, width: string, height: string }) => {
-    const [data, setState] = useState<string>(props.defaultValue || '')
+export default (props: { onChange: Function, lang: string, theme?: string, width: string, height: string }) => {
+    const [data, setState] = useState<string>()
 
     const options = {
         selectOnLineNumbers: true,
