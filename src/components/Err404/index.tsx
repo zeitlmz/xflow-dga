@@ -5,4 +5,4 @@ export default function Err404() {
         title="404"
         subTitle="页面未找到"
     />
-} 
+}
